@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153a66">
+  <title>자치행정 협력사업 예산 자동 심사</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#1c2c42;background:#f4f7fb;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0}header{background:#173c6c;color:white;padding:35px 22px 44px}header .wrap{max-width:1100px;margin:auto}header small{letter-spacing:.12em;color:#bed6f4;font-weight:700}h1{font-size:clamp(1.5rem,3vw,2.15rem);margin:12px 0}header p{color:#dbe8f9;margin:0;line-height:1.7}main{max-width:1100px;padding:0 22px 44px;margin:-22px auto 0}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.summary article{background:#fff;border-radius:14px;padding:23px 24px;box-shadow:0 5px 22px #16335a13;border:1px solid #e6edf5}.summary h2{font-size:0.91rem;font-weight:650;color:#607189;margin:0 0 11px}.summary strong{font-size:clamp(1.4rem,2.6vw,2rem);font-weight:800;letter-spacing:-.03em}.summary span{font-size:.86rem;color:#6d7d90;margin-left:5px}.approved{color:#16744e}.rejected{color:#ba3944}.panel{margin-top:22px;background:#fff;border:1px solid #e4eaf2;border-radius:14px;overflow:hidden;box-shadow:0 5px 22px #16335a0b}.panel-head{padding:23px 24px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}.panel-head h2{font-size:1.2rem;margin:0}.panel-head p{margin:8px 0 0;color:#65768c;font-size:.9rem}.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}button,select{background:#fff;border:1px solid #cdd8e5;border-radius:8px;padding:9px 12px;font:inherit;color:#1a3d69}button{cursor:pointer}button:hover{background:#f0f5fb}button:focus-visible,select:focus-visible{outline:3px solid #8bbcf2;outline-offset:2px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}thead{background:#f3f6fa}th{color:#52637b;font-size:.9rem;font-weight:700}th,td{padding:16px 23px;border-bottom:1px solid #eaf0f5}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#fafcff}td.numeric,th.numeric{text-align:right;font-variant-numeric:tabular-nums}td:last-child,th:last-child{text-align:center}.pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:.82rem;font-weight:750;padding:5px 14px}.pill.ok{color:#11653f;background:#e1f5e9}.pill.no{color:#a72738;background:#ffebee}.bottom{font-size:.85rem;color:#65778b;padding:16px 24px;background:#fbfcfe;border-top:1px solid #edf1f6}.note{padding:18px 23px;margin-top:20px;background:#e9f1fb;border-radius:12px;color:#305276;font-size:.91rem;line-height:1.8}.error{color:#aa2e3b;background:#fff0f1;border:1px solid #ffd2d8;border-radius:9px;padding:15px;margin:16px 24px}footer{text-align:center;color:#8a96a5;font-size:.8rem;padding:10px 20px 28px}@media(max-width:640px){header{padding-bottom:43px}.summary{gap:9px}.summary article{padding:16px 12px}.summary h2{font-size:.78rem}.summary strong{font-size:1.35rem}.summary article:last-child strong{font-size:1.1rem}.panel-head{padding:19px 16px}th,td{padding:13px 14px}.note{padding:15px}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><small>자치행정 · 협력사업 심사</small><h1>협력사업 예산 자동 심사</h1><p>지자체별 신청액을 인구 기준 한도액과 비교하여 승인 여부를 자동 판정합니다.</p></div></header>
+  <main>
+    <section class="summary" aria-label="심사 요약">
+      <article><h2>승인 건수</h2><strong class="approved" id="approvalCount">—</strong><span>건</span></article>
+      <article><h2>반려 건수</h2><strong class="rejected" id="rejectionCount">—</strong><span>건</span></article>
+      <article><h2>승인 신청액 합계</h2><strong id="approvedTotal">—</strong><span>원</span></article>
+    </section>
+    <section class="panel" aria-labelledby="resultsTitle"><div class="panel-head"><div><h2 id="resultsTitle">지자체별 심사 결과</h2><p id="recordCount">신청 데이터 불러오는 중…</p></div><div class="controls"><label for="filter">판정 필터</label><select id="filter"><option value="전체">전체</option><option value="승인">승인</option><option value="반려">반려</option></select><button id="reload" type="button">새로고침</button></div></div>
+    <div id="error" class="error" role="alert" hidden></div>
+    <div class="table-wrap"><table><thead><tr><th scope="col">지자체명</th><th scope="col" class="numeric">인구수</th><th scope="col" class="numeric">신청액</th><th scope="col" class="numeric">한도액</th><th scope="col">판정</th></tr></thead><tbody id="rows"><tr><td colspan="5" style="text-align:center;color:#64748b">자료를 불러오는 중입니다.</td></tr></tbody></table></div><div class="bottom" id="status" role="status" aria-live="polite">심사 기준: 신청액 ≤ 인구수 × 10 → 승인</div></section>
+    <div class="note"><strong>심사 기준 안내</strong><br>한도액 = 인구수 × 10원 · 신청액이 한도액 이하이면 <strong>승인</strong>, 초과하면 <strong>반려</strong>합니다.<br>요약 수치는 필터와 관계없이 전체 신청 건을 기준으로 계산합니다.</div>
+  </main><footer>자치행정 협력사업 · 예산 자동 심사 시스템</footer>
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const format = n => new Intl.NumberFormat('ko-KR').format(n);
+    const embeddedData = [{"지자체명": "가람군", "인구수": 30000, "신청액": 250000}, {"지자체명": "나봄시", "인구수": 45000, "신청액": 500000}, {"지자체명": "다솔구", "인구수": 80000, "신청액": 600000}, {"지자체명": "라윤시", "인구수": 60000, "신청액": 700000}, {"지자체명": "마을군", "인구수": 25000, "신청액": 200000}, {"지자체명": "바람시", "인구수": 100000, "신청액": 950000}, {"지자체명": "사계구", "인구수": 55000, "신청액": 600000}, {"지자체명": "아현시", "인구수": 70000, "신청액": 650000}, {"지자체명": "자연군", "인구수": 40000, "신청액": 380000}, {"지자체명": "차돌시", "인구수": 90000, "신청액": 880000}];
+    let records = [];
+    function readNumber(value, name, index) {
+      if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new Error(`${index + 1}번째 지자체의 ${name} 값이 올바르지 않습니다.`);
+      return value;
+    }
+    function parseRecords(data) {
+      if (!Array.isArray(data)) throw new Error('신청목록.json은 배열 형식이어야 합니다.');
+      return data.map((entry, index) => {
+        if (!entry || typeof entry.지자체명 !== 'string' || !entry.지자체명.trim()) throw new Error(`${index + 1}번째 지자체명이 올바르지 않습니다.`);
+        const population = readNumber(entry.인구수, '인구수', index);
+        const request = readNumber(entry.신청액, '신청액', index);
+        const limit = population * 10;
+        if (!Number.isSafeInteger(limit)) throw new Error(`${index + 1}번째 한도액이 계산 범위를 초과했습니다.`);
+        return {name: entry.지자체명, population, request, limit, verdict: request > limit ? '반려' : '승인'};
+      });
+    }
+    function render() {
+      const approved = records.filter(row => row.verdict === '승인');
+      $('approvalCount').textContent = format(approved.length);
+      $('rejectionCount').textContent = format(records.length - approved.length);
+      $('approvedTotal').textContent = format(approved.reduce((sum, row) => sum + row.request, 0));
+      const filter = $('filter').value;
+      const shown = records.filter(row => filter === '전체' || row.verdict === filter);
+      $('recordCount').textContent = `전체 ${format(records.length)}건 · 현재 ${format(shown.length)}건 표시`;
+      const body = $('rows');
+      body.replaceChildren();
+      if (!shown.length) { const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=5;td.style.textAlign='center';td.textContent='표시할 데이터가 없습니다.';tr.append(td);body.append(tr); }
+      for (const row of shown) {
+        const tr=document.createElement('tr');
+        for (const [value,numeric] of [[row.name,false],[format(row.population),true],[format(row.request),true],[format(row.limit),true]]) {
+          const td=document.createElement('td');td.textContent=value;if(numeric)td.className='numeric';tr.append(td);
+        }
+        const td=document.createElement('td');const pill=document.createElement('span');pill.className=`pill ${row.verdict==='승인'?'ok':'no'}`;pill.textContent=row.verdict;td.append(pill);tr.append(td);body.append(tr);
+      }
+      $('status').textContent=`판정 완료 · 승인 ${format(approved.length)}건 / 반려 ${format(records.length-approved.length)}건`;
+    }
+    async function load() {
+      $('error').hidden=true;
+      $('status').textContent='신청 데이터 불러오는 중…';
+      try {
+        let data = embeddedData;
+        if (location.protocol !== 'file:') {
+          try {
+            const response = await fetch('./신청목록.json', {cache:'no-store'});
+            if (response.ok) data = await response.json();
+          } catch (_) { /* 내장 데이터를 사용합니다. */ }
+        }
+        records=parseRecords(data);
+        render();
+      } catch(e) {
+        records=[];$('approvalCount').textContent='—';$('rejectionCount').textContent='—';$('approvedTotal').textContent='—';
+        $('recordCount').textContent='데이터를 불러오지 못했습니다.';
+        $('rows').replaceChildren();
+        $('status').textContent='데이터 로드 실패';
+        $('error').textContent=`데이터 처리 오류: ${e.message}`;
+        $('error').hidden=false;
+      }
+    }
+    $('filter').addEventListener('change',render);
+    $('reload').addEventListener('click',load);
+    load();
+  </script>
+</body>
+</html>
